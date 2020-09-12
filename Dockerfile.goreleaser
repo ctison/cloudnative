@@ -1,0 +1,3 @@
+FROM gcr.io/distroless/static-debian10@sha256:9adc4c05db7f58534c64293b48d49fa5cbd198f2eb2c7b824b8088904588bc59
+COPY --chown=nonroot:nonroot /cloudnative /cloudnative
+ENTRYPOINT [ "/cloudnative" ]

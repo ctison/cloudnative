@@ -1,0 +1,32 @@
+before:
+  hooks:
+    - go mod download
+builds:
+  - env:
+      - GO111MODULE=on
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags:
+      - -s -w
+      - -X 'main.version={{.Version}}'
+archives:
+  - format: binary
+checksum:
+  name_template: checksums.txt
+release:
+  prerelease: auto
+snapshot:
+  name_template: 0.0.0-{{.Commit}}
+changelog:
+  filters:
+    exclude:
+    - '^(chore|docs|style|test)(\(.+?\))?:'
+    - '^Merge pull request:'
+    - '^Merge branch:'
+dockers:
+  - dockerfile: Dockerfile.goreleaser
+    image_templates:
+    - docker.pkg.github.com/ctison/{{.ProjectName}}/{{.ProjectName}}:v{{.Version}}
