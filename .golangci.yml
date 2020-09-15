@@ -9,7 +9,6 @@ linters:
     - exhaustive
     - exportloopref
     - funlen
-    - gci
     - gochecknoglobals
     - gochecknoinits
     - gocognit
