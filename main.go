@@ -55,13 +55,13 @@ func main() {
 	os.Exit(errCount)
 }
 
-// Start servers and return the errors' count (which may be 0) when all servers are (gracefully) shutdowned.
+// Start servers and return the errors' count (which may be 0) when all servers are (gracefully) shutdown.
 func runServers(log *zap.Logger) (errCount int) {
-	// ServerFunc starts an asynchronous server and returns a function to stop that server asynchronously.
-	// If this function returns no error, it is expected that it will send two errors through the errs channel:
-	// - One from the server
-	// - One from its stop function
-	type ServerFunc func(_ *zap.Logger, errs chan<- error) (func(), error)
+	// ServerFunc starts an asynchronous server or returns an error.
+	// When the context is canceled, two errors (possibly nil) are expected from the errors' channel:
+	// - One from the server.
+	// - One from its stop procedure.
+	type ServerFunc func(context.Context, *zap.Logger, chan<- error) error
 
 	// List the servers this program will run.
 	servers := []ServerFunc{
@@ -69,37 +69,38 @@ func runServers(log *zap.Logger) (errCount int) {
 		httpServer,
 	}
 
-	// Make an array to gather servers' stop functions.
-	stops := make([]func(), 0, len(servers))
+	// Make an array to gather servers' cancel functions.
+	cancels := make([]context.CancelFunc, 0, len(servers))
 
-	// Make a channel of errors that servers may use to stop the program.
-	errs := make(chan error, len(servers)*2)
+	// Make a channel of errors that servers use to pass errors back to the main thread.
+	errs := make(chan error, len(servers))
 
 	// Start the servers.
 	for _, server := range servers {
-		stop, err := server(log.Named("server"), errs)
-		if err != nil {
+		ctx, cancel := context.WithCancel(context.Background())
+		if err := server(ctx, log.Named("server"), errs); err != nil {
+			cancel()
 			errCount++
-			errCount += stopServers(stops, errs, len(stops)*2)
+			errCount += stopServers(cancels, errs, len(cancels)*2)
 			return errCount
 		}
-		stops = append(stops, stop)
+		cancels = append(cancels, cancel)
 	}
 
-	// Wait until a server send an error (which may be nil).
+	// Wait until a server sends an error.
 	if err := <-errs; err != nil {
 		errCount++
 	}
 
 	// Gracefully shutdown servers and return.
-	errCount += stopServers(stops, errs, len(stops)*2-1)
+	errCount += stopServers(cancels, errs, len(cancels)*2-1)
 	return errCount
 }
 
 // Gracefully shutdown servers after having received waitFor errors from errs.
-func stopServers(stops []func(), errs <-chan error, waitFor int) (errCount int) {
-	for _, stop := range stops {
-		stop()
+func stopServers(cancels []context.CancelFunc, errs <-chan error, waitFor int) (errCount int) {
+	for _, cancel := range cancels {
+		cancel()
 	}
 	for i := 0; i < waitFor; i++ {
 		if err := <-errs; err != nil {
@@ -110,7 +111,7 @@ func stopServers(stops []func(), errs <-chan error, waitFor int) (errCount int) 
 }
 
 // Start handling signals and send a nil error to errs when receiving one.
-func signalServer(log *zap.Logger, errs chan<- error) (func(), error) {
+func signalServer(ctx context.Context, log *zap.Logger, errs chan<- error) error {
 	// Add contextual prefix to the logger.
 	log = log.Named("signals")
 
@@ -119,32 +120,26 @@ func signalServer(log *zap.Logger, errs chan<- error) (func(), error) {
 	signalsNumber := []os.Signal{syscall.SIGINT, syscall.SIGTERM}
 	signal.Notify(signals, signalsNumber...)
 
-	// Instantiate a stop channel to stop handling signals.
-	stop := make(chan struct{}, 1)
-
 	// Start handling signals.
 	go func() {
 		log.Info(fmt.Sprintf("start handling: %v", signalsNumber))
 		select {
-		case <-stop:
+		case <-ctx.Done():
 			break
-		case <-signals:
-			break
+		case sig := <-signals:
+			log.Info(fmt.Sprintf("received signal: %v", sig))
 		}
 		signal.Stop(signals)
-		log.Info("shutdowned")
+		log.Info("shutdown")
+		errs <- nil
 		errs <- nil
 	}()
 
-	// Return stop function.
-	return func() {
-		stop <- struct{}{}
-		errs <- nil
-	}, nil
+	return nil
 }
 
 // Start an HTTP server.
-func httpServer(log *zap.Logger, errs chan<- error) (func(), error) {
+func httpServer(ctx context.Context, log *zap.Logger, errs chan<- error) error {
 	// Add contextual prefix to the logger.
 	log = log.Named("http")
 
@@ -184,8 +179,9 @@ func httpServer(log *zap.Logger, errs chan<- error) (func(), error) {
 		errs <- nil
 	}()
 
-	// Return the stop function.
-	return func() {
+	// Wait for the context cancellation to shutdown the server.
+	go func() {
+		<-ctx.Done()
 		if err := httpServer.Shutdown(context.Background()); err != nil {
 			if errors.Is(err, http.ErrServerClosed) {
 				errs <- nil
@@ -194,8 +190,10 @@ func httpServer(log *zap.Logger, errs chan<- error) (func(), error) {
 			log.Error(err.Error())
 			errs <- wrapError(err)
 		} else {
-			log.Info("shutdowned")
+			log.Info("shutdown")
 			errs <- nil
 		}
-	}, nil
+	}()
+
+	return nil
 }
