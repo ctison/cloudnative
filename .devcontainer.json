@@ -1,0 +1,11 @@
+{
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "cloudnative",
+  "forwardPorts": [8080],
+  "extensions": [
+    "golang.go",
+    "mutantdino.resourcemonitor",
+    "redhat.vscode-yaml",
+    "zxh404.vscode-proto3"
+  ]
+}

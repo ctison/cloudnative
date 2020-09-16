@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://github.com/SchemaStore/schemastore/raw/master/src/schemas/json/prometheus.json
+
+scrape_configs:
+  - job_name: collector
+    scrape_interval: 10s
+    static_configs:
+      - targets: [collector:8888]
+      - targets: [collector:8889]
