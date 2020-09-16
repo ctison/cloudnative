@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
@@ -14,25 +15,65 @@ type Server struct {
 	server *http.Server
 }
 
-func New(server *http.Server) *Server {
-	r := mux.NewRouter()
+func New(log *zap.Logger, devMode bool, server *http.Server) *Server {
+	if !devMode {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	// Instantiate gin router.
+	r := gin.New()
+	r.Use(ginLogger(log))
+
+	// Setup probes handlers.
+	r.GET("/ready", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ready",
+		})
+	})
+
+	r.GET("/alive", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "alive",
+		})
+	})
+
 	if server == nil {
 		server = &http.Server{Addr: ":8080"}
 	}
 	server.Handler = r
-	r.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `{"status":"ready"}`)
-	})
-	r.HandleFunc("/alive", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `{"status":"alive"}`)
-	})
+
 	return &Server{
 		server: server,
 	}
 }
 
-func (srv *Server) Mux() *mux.Router {
-	return srv.server.Handler.(*mux.Router)
+// Gin logger middleware.
+func ginLogger(log *zap.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		start := time.Now()
+		path := c.Request.URL.Path
+		query := c.Request.URL.RawQuery
+		c.Next()
+		if len(c.Errors) > 0 {
+			for _, err := range c.Errors.Errors() {
+				log.Error(err)
+			}
+			return
+		}
+		log.Info(path,
+			zap.Int("status", c.Writer.Status()),
+			zap.String("method", c.Request.Method),
+			zap.String("path", path),
+			zap.String("query", query),
+			zap.String("ip", c.ClientIP()),
+			zap.String("userAgent", c.Request.UserAgent()),
+			zap.Int("bodySize", c.Writer.Size()),
+			zap.Duration("latency", time.Since(start)),
+		)
+	}
+}
+
+func (srv *Server) Gin() *gin.Engine {
+	return srv.server.Handler.(*gin.Engine)
 }
 
 func (srv *Server) Start(ctx context.Context, log *zap.Logger, errs chan<- error) error {

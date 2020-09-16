@@ -9,6 +9,8 @@ builds:
       - linux
     goarch:
       - amd64
+    flags:
+      - -tags=jsoniter
     ldflags:
       - -s -w
       - -X 'main.version={{.Version}}'
@@ -23,10 +25,10 @@ snapshot:
 changelog:
   filters:
     exclude:
-    - '^(chore|docs|style|test)(\(.+?\))?:'
-    - '^Merge pull request:'
-    - '^Merge branch:'
+      - '^(chore|docs|style|test)(\(.+?\))?:'
+      - '^Merge pull request:'
+      - '^Merge branch:'
 dockers:
   - dockerfile: Dockerfile.goreleaser
     image_templates:
-    - docker.pkg.github.com/ctison/{{.ProjectName}}/{{.ProjectName}}:v{{.Version}}
+      - docker.pkg.github.com/ctison/{{.ProjectName}}/{{.ProjectName}}:v{{.Version}}

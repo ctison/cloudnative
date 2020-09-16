@@ -3,12 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
 	"os"
 
 	"github.com/ctison/cloudnative/pkg/server"
 	serverHTTP "github.com/ctison/cloudnative/pkg/server/http"
 	"github.com/ctison/cloudnative/pkg/server/signal"
+	"github.com/gin-gonic/gin"
 
 	"go.uber.org/zap"
 )
@@ -45,7 +45,7 @@ func main() {
 		panic(err)
 	}
 
-	errs := run(log)
+	errs := run(log, *devMode)
 
 	// Flush logger here and not in a deferred function calls because we use os.Exit.
 	_ = log.Sync()
@@ -54,11 +54,13 @@ func main() {
 	os.Exit(len(errs))
 }
 
-func run(log *zap.Logger) []error {
-	httpServer := serverHTTP.New(nil)
-	r := httpServer.Mux()
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `{"msg":"Hello World"}`)
+func run(log *zap.Logger, devMode bool) []error {
+	httpServer := serverHTTP.New(log, devMode, nil)
+	r := httpServer.Gin()
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Hello World",
+		})
 	})
 	srv := server.New(httpServer, signal.New())
 
