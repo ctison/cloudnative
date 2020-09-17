@@ -3,27 +3,28 @@ package telemetry
 import (
 	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/exporters/otlp"
-	"go.opentelemetry.io/otel/sdk/trace"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 func Init() error {
+	// Instantiate the exporter.
 	exporter, err := otlp.NewExporter(
-		otlp.WithInsecure(),
 		otlp.WithAddress("agent:55680"),
+		otlp.WithInsecure(),
 	)
 	if err != nil {
 		return err
 	}
-	traceProvider, err := trace.NewProvider(
-		trace.WithConfig(trace.Config{
-			DefaultSampler: trace.AlwaysSample(),
-		}),
-		trace.WithSyncer(exporter),
-		// trace.WithResource(resource.New(label.String("service", "cloudnative"))),
+
+	tp, err := sdktrace.NewProvider(
+		sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
+		sdktrace.WithBatcher(exporter),
 	)
 	if err != nil {
 		return err
 	}
-	global.SetTraceProvider(traceProvider)
+
+	global.SetTraceProvider(tp)
+
 	return nil
 }

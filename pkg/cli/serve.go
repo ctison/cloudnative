@@ -5,14 +5,13 @@ import (
 	"os"
 	"time"
 
-	otelGlobal "go.opentelemetry.io/otel/api/global"
-
 	"github.com/ctison/cloudnative/pkg/server"
 	"github.com/ctison/cloudnative/pkg/server/http"
 	"github.com/ctison/cloudnative/pkg/server/signal"
 	"github.com/ctison/cloudnative/pkg/telemetry"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
+	otel "go.opentelemetry.io/otel/api/global"
 	"go.uber.org/zap"
 )
 
@@ -31,6 +30,7 @@ func (cli *CLI) Serve(cmd *cobra.Command, args []string) {
 		log.Error("failed to start telemetry", zap.Error(err))
 		os.Exit(1)
 	}
+	tracer := otel.Tracer("cloudnative")
 
 	// Instantiate http server.
 	httpServer := http.New(log, cli.serve.devMode, nil)
@@ -47,17 +47,16 @@ func (cli *CLI) Serve(cmd *cobra.Command, args []string) {
 	})
 
 	r.GET("/trace", func(c *gin.Context) {
-		tracer := otelGlobal.Tracer("xXx")
-		ctx, span := tracer.Start(context.Background(), "job")
+		time.Sleep(250)
+		ctx, span := tracer.Start(c.Request.Context(), "foo")
 		defer span.End()
-		time.Sleep(1 * time.Second)
-		span.AddEvent(ctx, "pip")
+		time.Sleep(250)
 		func(ctx context.Context) {
-			ctx, span := tracer.Start(ctx, "subjob")
-			time.Sleep(time.Second)
-			span.AddEvent(ctx, "pop")
+			_, span := tracer.Start(ctx, "bar")
 			defer span.End()
+			time.Sleep(250)
 		}(ctx)
+		time.Sleep(250)
 	})
 
 	// Instantiate all servers.

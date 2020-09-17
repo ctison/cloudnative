@@ -2,16 +2,13 @@ receivers:
   otlp:
     protocols:
       grpc:
-
-processors:
-  batch:
-  queued_retry:
+      http:
 
 exporters:
   logging:
     loglevel: debug
   jaeger:
-    endpoint: http://jaeger:14250
+    endpoint: jaeger:14250
     insecure: true
   prometheus:
     endpoint: 0.0.0.0:8889
@@ -21,6 +18,10 @@ exporters:
   zipkin:
     endpoint: http://zipkin:9411/api/v2/spans
     format: proto
+
+processors:
+  batch:
+  queued_retry:
 
 extensions:
   health_check:
