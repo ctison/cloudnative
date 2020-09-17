@@ -1,7 +1,10 @@
 {
   "dockerComposeFile": "docker-compose.yml",
   "service": "cloudnative",
-  "forwardPorts": [8080],
+  "workspaceFolder": "/app",
+  "forwardPorts": [
+    8080
+  ],
   "extensions": [
     "golang.go",
     "mutantdino.resourcemonitor",
