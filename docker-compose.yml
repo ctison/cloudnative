@@ -4,7 +4,7 @@ services:
   cloudnative:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       target: dev
     command:
       - serve
@@ -14,7 +14,7 @@ services:
   agent:
     image: otel/opentelemetry-collector:0.10.0@sha256:8bf52842ea6407d5296aa71083c88a5db907dcabe5f092fb19d665a62904f510
     command:
-      - --config=/etc/opentelemetry/config.yaml
+      - --config=/etc/opentelemetry/config.yml
     volumes:
       - ./config/agent:/etc/opentelemetry:ro
     depends_on: [collector]
@@ -22,7 +22,7 @@ services:
   collector:
     image: otel/opentelemetry-collector:0.10.0@sha256:8bf52842ea6407d5296aa71083c88a5db907dcabe5f092fb19d665a62904f510
     command:
-      - --config=/etc/opentelemetry/config.yaml
+      - --config=/etc/opentelemetry/config.yml
     volumes:
       - ./config/collector:/etc/opentelemetry:ro
     ports:
@@ -42,7 +42,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.21.0@sha256:f3ada803723ccbc443ebea19f7ab24d3323def496e222134bf9ed54ae5b787bd
     command:
-      - --config.file=/etc/prometheus/config.yaml
+      - --config.file=/etc/prometheus/config.yml
     volumes:
       - ./config/prometheus:/etc/prometheus
     ports:
