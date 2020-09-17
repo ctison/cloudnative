@@ -1,6 +1,9 @@
-.PHONY: lint test build release clean
+.PHONY: serve lint test build release clean
 
 SHELL := bash --noprofile --norc -O nullglob -euo pipefail
+
+serve:
+	go run main.go serve --otel-addr agent:55680
 
 lint:
 	golangci-lint run
