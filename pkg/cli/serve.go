@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"os"
 	"time"
 
@@ -12,8 +13,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	otel "go.opentelemetry.io/otel/api/global"
+	"go.opentelemetry.io/otel/api/trace"
 	"go.uber.org/zap"
 )
+
+var errExample = errors.New("example erro")
 
 func (cli *CLI) Serve(cmd *cobra.Command, args []string) {
 	// Instantiate logger.
@@ -25,10 +29,12 @@ func (cli *CLI) Serve(cmd *cobra.Command, args []string) {
 		panic(err)
 	}
 
-	// Setup telemetry.
-	if err := telemetry.Init(); err != nil {
-		log.Error("failed to start telemetry", zap.Error(err))
-		os.Exit(1)
+	// Setup telemetry if enabled.
+	if cli.serve.otelAddr != "" {
+		if err := telemetry.Init(cli.serve.otelAddr); err != nil {
+			log.Error("failed to start telemetry", zap.Error(err))
+			os.Exit(1)
+		}
 	}
 	tracer := otel.Tracer("cloudnative")
 
@@ -36,28 +42,8 @@ func (cli *CLI) Serve(cmd *cobra.Command, args []string) {
 	httpServer := http.New(log, cli.serve.devMode, nil)
 	r := httpServer.Gin()
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello World",
-		})
-	})
-
-	r.GET("/panic", func(c *gin.Context) {
-		panic("I have been asked to panic")
-	})
-
-	r.GET("/trace", func(c *gin.Context) {
-		time.Sleep(250)
-		ctx, span := tracer.Start(c.Request.Context(), "foo")
-		defer span.End()
-		time.Sleep(250)
-		func(ctx context.Context) {
-			_, span := tracer.Start(ctx, "bar")
-			defer span.End()
-			time.Sleep(250)
-		}(ctx)
-		time.Sleep(250)
-	})
+	// Setup HTTP handlers.
+	setupHTTP(r, tracer)
 
 	// Instantiate all servers.
 	srv := server.New(httpServer, signal.New())
@@ -75,4 +61,36 @@ func (cli *CLI) Serve(cmd *cobra.Command, args []string) {
 
 	// Exit with the number of errors that occurred.
 	os.Exit(len(errs))
+}
+
+// Setup HTTP handlers.
+func setupHTTP(r *gin.Engine, tracer trace.Tracer) {
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Hello World",
+		})
+	})
+
+	r.GET("/panic", func(c *gin.Context) {
+		panic("I have been asked to panic")
+	})
+
+	r.GET("/trace", func(c *gin.Context) {
+		time.Sleep(250)
+		ctx, span := tracer.Start(c.Request.Context(), "foo")
+		defer span.End()
+		time.Sleep(250)
+		span.AddEvent(ctx, "custom event")
+		time.Sleep(250)
+		func(ctx context.Context) {
+			_, span := tracer.Start(ctx, "bar")
+			defer span.End()
+			time.Sleep(250)
+			span.RecordError(ctx, errExample)
+			time.Sleep(250)
+			span.SetAttribute("custom attribute", "foobar")
+			time.Sleep(250)
+		}(ctx)
+		time.Sleep(250)
+	})
 }

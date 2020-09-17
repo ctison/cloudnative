@@ -6,6 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile.dev
       target: dev
+    command:
+      - serve
+      - --otel-addr=agent:55680
     depends_on: [agent]
 
   agent:

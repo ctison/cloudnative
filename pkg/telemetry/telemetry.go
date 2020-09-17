@@ -6,16 +6,17 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
-func Init() error {
-	// Instantiate the exporter.
+func Init(addr string) error {
+	// Create the exporter.
 	exporter, err := otlp.NewExporter(
-		otlp.WithAddress("agent:55680"),
+		otlp.WithAddress(addr),
 		otlp.WithInsecure(),
 	)
 	if err != nil {
 		return err
 	}
 
+	// Create the trace provider.
 	tp, err := sdktrace.NewProvider(
 		sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}),
 		sdktrace.WithBatcher(exporter),
@@ -24,6 +25,7 @@ func Init() error {
 		return err
 	}
 
+	// Set the trace provider as default.
 	global.SetTraceProvider(tp)
 
 	return nil

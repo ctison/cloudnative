@@ -11,6 +11,7 @@ type CLI struct {
 	serve struct {
 		logLevel ZapLevel
 		devMode  bool
+		otelAddr string
 	}
 	help bool
 }
@@ -28,18 +29,21 @@ func (lvl ZapLevel) Type() string {
 // Create a CLI to run.
 func New(version string) *CLI {
 	cli := &CLI{}
+
 	// Setup root command.
 	cli.root = newCommand()
 	cli.root.Version = version
 	cli.root.Use = "cloudnative COMMAND"
 	cli.root.Short = "Cloud native service example integrated with opentelemetry."
 	cli.root.PersistentFlags().BoolVar(&cli.help, "help", false, "Print help and exit")
+
 	// Setup serve command.
 	serve := newCommand()
 	serve.Use = "serve"
 	serve.Short = "Start cloud native servers"
 	serve.Run = cli.Serve
 	serve.Flags().VarP(&cli.serve.logLevel, "log-level", "l", "Set the logging level")
+	serve.Flags().StringVar(&cli.serve.otelAddr, "otel-addr", "", "Set the open telemetry collector's address")
 	cli.root.AddCommand(serve)
 
 	return cli
