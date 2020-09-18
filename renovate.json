@@ -1,4 +1,16 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>ctison/renovate"]
+  "$schema": "https://github.com/SchemaStore/schemastore/raw/master/src/schemas/json/renovate.json",
+  "extends": ["github>ctison/renovate"],
+  "regexManagers": [{
+    "fileMatch": ["^.github/workflows/cicd.yaml"],
+    "datasourceTemplate": "github-releases",
+    "matchStrings": [
+      "\n +version: (?<currentValue>[^ ]+) # (?<depName>.+?)\n"
+    ],
+    "versioningTemplate": "loose"
+  }],
+  "packageRules": [{
+    "packageNames": ["golangci/golangci-lint"],
+    "extractVersion": "^(?<version>v\\d+\\.\\d+)"
+  }]
 }
