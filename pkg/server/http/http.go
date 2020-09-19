@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.elastic.co/apm/module/apmgin"
 	gintrace "go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -22,6 +23,7 @@ func New(log *zap.Logger, devMode bool, server *http.Server) *Server {
 	}
 	// Instantiate gin router.
 	r := gin.New()
+	r.Use(apmgin.Middleware(r))
 	r.Use(ginLogger(log))
 	r.Use(gintrace.Middleware("cloudnative"))
 

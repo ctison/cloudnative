@@ -6,6 +6,8 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/golang/protobuf v1.4.2
 	github.com/spf13/cobra v1.0.0
+	go.elastic.co/apm/module/apmgin v1.8.0
+	go.elastic.co/apm/module/apmzap v1.8.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin v0.11.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc v0.11.0
 	go.opentelemetry.io/otel v0.11.0

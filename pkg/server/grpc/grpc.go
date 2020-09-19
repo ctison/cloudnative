@@ -29,6 +29,8 @@ func (srv *fooServer) Trace(ctx context.Context, r *api.TraceRequest) (*api.Trac
 
 func New(log *zap.Logger) *Server {
 	server := grpc.NewServer(
+		// Only one interceptor can be set.
+		// grpc.UnaryInterceptor(apmgrpc.NewUnaryServerInterceptor(apmgrpc.WithRecovery())),
 		grpc.UnaryInterceptor(grpcotel.UnaryServerInterceptor(otel.Tracer(""))),
 		grpc.StreamInterceptor(grpcotel.StreamServerInterceptor(otel.Tracer(""))),
 	)
