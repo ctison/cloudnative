@@ -162,10 +162,13 @@ github.com/ugorji/go/codec v1.1.7/go.mod h1:Ax+UKWsSmolVDwsd+7N3ZtXu+yMGCf907BLY
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
 go.etcd.io/bbolt v1.3.2/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
+go.opentelemetry.io v0.1.0 h1:EANZoRCOP+A3faIlw/iN6YEWoYb1vleZRKm1EvH8T48=
 go.opentelemetry.io/contrib v0.11.0 h1:EQOdk+fxs7qp3wVIS5wCinwqNHfhD/DreQRY/VADO8s=
 go.opentelemetry.io/contrib v0.11.0/go.mod h1:ZE6zLnhbB+AmcDlcG57gEbtyUasUiaeppcDfBcrZabY=
 go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin v0.11.0 h1:qxYmJ03GPrNXNFrvxE5wuYU5WrkHDbz0PeNxS8qwcgI=
 go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin v0.11.0/go.mod h1:dHWV1Pntu4KeYVCprtI8O8lMQC3zm85yZZCGKDUtDio=
+go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc v0.11.0 h1:jx+6CPh/uE5xW4uCm5gCb5B36+/c/k58mH+8YQ1glZo=
+go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc v0.11.0/go.mod h1:+6Kxsolxctkb7k57eHfR2T1EF7ukt5btjo8s/92wk4M=
 go.opentelemetry.io/otel v0.11.0 h1:IN2tzQa9Gc4ZVKnTaMbPVcHjvzOdg5n9QfnmlqiET7E=
 go.opentelemetry.io/otel v0.11.0/go.mod h1:G8UCk+KooF2HLkgo8RHX9epABH/aRGYET7gQOqBVdB0=
 go.opentelemetry.io/otel/exporters/otlp v0.11.0 h1:lNOQd4CG+6ESHBzCZPAa+vX9HUS0hsWISM7rMAe568Q=
@@ -251,6 +254,8 @@ google.golang.org/grpc v1.25.1/go.mod h1:c3i+UQWmh7LiEpx4sFZnkU36qjEYZ0imhYfXVyQ
 google.golang.org/grpc v1.27.0/go.mod h1:qbnxyOmOxrQa7FizSgH+ReBfzJrCY1pSN7KXBS8abTk=
 google.golang.org/grpc v1.31.0 h1:T7P4R73V3SSDPhH7WW7ATbfViLtmamH0DKrP3f9AuDI=
 google.golang.org/grpc v1.31.0/go.mod h1:N36X2cJ7JwdamYAgDz+s+rVMFjt3numwzf/HckM8pak=
+google.golang.org/grpc v1.32.0 h1:zWTV+LMdc3kaiJMSTOFz2UgSBgx8RNQoTGiZu3fR9S0=
+google.golang.org/grpc v1.32.0/go.mod h1:N36X2cJ7JwdamYAgDz+s+rVMFjt3numwzf/HckM8pak=
 google.golang.org/protobuf v0.0.0-20200109180630-ec00e32a8dfd/go.mod h1:DFci5gLYBciE7Vtevhsrf46CRTquxDuWsQurQQe4oz8=
 google.golang.org/protobuf v0.0.0-20200221191635-4d8936d0db64/go.mod h1:kwYJMbMJ01Woi6D6+Kah6886xMZcty6N08ah7+eCXa0=
 google.golang.org/protobuf v0.0.0-20200228230310-ab0ca4ff8a60/go.mod h1:cfTl7dwQJ+fmap5saPgwCLgHXTUD7jkjRqWcaiX5VyM=

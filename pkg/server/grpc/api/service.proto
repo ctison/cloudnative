@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package grpc;
+
+option go_package = ".;api";
+
+service Foo {
+  rpc Trace(TraceRequest) returns (TraceResponse) {}
+}
+
+message TraceRequest {
+  string bar = 1;
+  string baz = 2;
+}
+
+message TraceResponse {
+  string msg = 1;
+}

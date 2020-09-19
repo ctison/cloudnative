@@ -1,4 +1,9 @@
 linters-settings:
+issues:
+  exclude-rules:
+    - path: pkg/server/grpc/grpc.go
+      text: 'G102: Binds to all network interfaces'
+      linters: [gosec]
 linters:
   enable:
     - asciicheck

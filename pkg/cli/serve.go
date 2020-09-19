@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ctison/cloudnative/pkg/server"
+	"github.com/ctison/cloudnative/pkg/server/grpc"
 	"github.com/ctison/cloudnative/pkg/server/http"
 	"github.com/ctison/cloudnative/pkg/server/signal"
 	"github.com/ctison/cloudnative/pkg/telemetry"
@@ -38,15 +39,16 @@ func (cli *CLI) Serve(cmd *cobra.Command, args []string) {
 	}
 	tracer := otel.Tracer("cloudnative")
 
-	// Instantiate http server.
+	// Setup HTTP server.
 	httpServer := http.New(log, cli.serve.devMode, nil)
 	r := httpServer.Gin()
-
-	// Setup HTTP handlers.
 	setupHTTP(r, tracer)
 
+	// Setup gRPC server.
+	grpcServer := grpc.New(log.Named("grpc"))
+
 	// Instantiate all servers.
-	srv := server.New(httpServer, signal.New())
+	srv := server.New(httpServer, grpcServer, signal.New())
 
 	// Run servers.
 	errs := func() []error {
