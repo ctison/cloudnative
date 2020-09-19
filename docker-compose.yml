@@ -3,6 +3,7 @@ version: '3.8'
 services:
   cloudnative:
     image: ctison/golang:1.15.2@sha256:6fa4f8ab2e83fed1c8045139ae5444d6b78ac3680ceda00370aacff42b65e1e1
+    command: [sleep, inf]
     volumes:
       - .:/app
     depends_on: [agent]
